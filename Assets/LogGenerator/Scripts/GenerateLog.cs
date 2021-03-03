@@ -35,7 +35,7 @@ namespace LogbookGenerator
 		{
 			if( logEntryObject.EntriesIsEmpty() )
 			{
-				logEntryObject _logEntryObject = new logEntryObject();
+				LogEntryObject _logEntryObject = new LogEntryObject();
 			}
 		}
 
