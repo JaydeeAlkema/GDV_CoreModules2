@@ -7,11 +7,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+//TODO:
+// Add comments.
+// Improve UI layout.
+
 namespace LogbookGenerator
 {
 	public class GenerateLogEditorWindow : EditorWindow
 	{
 		private static GenerateLogEditorWindow window;
+		private GenerateLog generateLog;
 
 		private string logPath;
 		private int toolbarInt = 0;
@@ -34,6 +39,11 @@ namespace LogbookGenerator
 
 			GUILayout.Space( 15 );
 			ShowContentsDependingOnToolbarInt();
+		}
+		private void OnEnable()
+		{
+			generateLog = new GenerateLog();
+			generateLog.LoadFile();
 		}
 
 		private void ShowContentsDependingOnToolbarInt()
@@ -81,11 +91,6 @@ namespace LogbookGenerator
 
 			GUILayout.Label( "Current Path:" );
 			GUILayout.Label( logPath, EditorStyles.wordWrappedLabel );
-
-			//if( logPath != "" )
-			//{
-			//	GenerateLog.GetEntriesFromLogFile( logPath );
-			//}
 		}
 		private void ShowAddLogContents()
 		{
@@ -104,7 +109,11 @@ namespace LogbookGenerator
 			GUI.backgroundColor = Color.green;
 			if( GUILayout.Button( "Complete" ) )
 			{
-				GenerateLog.WriteToLog( logPath, Log_Username, Log_Title, Log_Message, Log_Notes );
+				EditorPrefs.SetString( "Log_DataPath", Application.persistentDataPath + "_" + Log_Username + "_DATALOG" + ".txt" );
+
+				string dataPath = EditorPrefs.GetString( "Log_DataPath" );
+
+				generateLog.AddLogToEntries( Log_Username, Log_Title, Log_Message, Log_Notes );
 
 				if( Log_Username != EditorPrefs.GetString( "Log_Username" ) )
 				{
@@ -120,12 +129,10 @@ namespace LogbookGenerator
 		private void ShowEditLogContents()
 		{
 			GUILayout.Label( "Edit Log" );
-
 		}
 		private void ShowRemoveLogContents()
 		{
 			GUILayout.Label( "Remove Log" );
-
 		}
 	}
 }
