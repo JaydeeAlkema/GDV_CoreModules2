@@ -10,15 +10,21 @@ namespace LogbookGenerator
 	public class GenerateLog
 	{
 		private LogEntryObject logEntryObject;
+		private string logPath;
 
 		public GenerateLog()
 		{
 			logEntryObject = new LogEntryObject();
 		}
 
+		public void SetLogPath( string path )
+		{
+			logPath = path;
+		}
+
 		public void AddLogToEntries( string user, string title, string message, string notes )
 		{
-			LogEntry entry = new LogEntry
+			LogEntry entry = new()
 			{
 				Username = ClearForbiddenCharactersFromString( user ),
 				Title = ClearForbiddenCharactersFromString( title ),
@@ -35,7 +41,8 @@ namespace LogbookGenerator
 		{
 			if( logEntryObject.EntriesIsEmpty() )
 			{
-				LogEntryObject _logEntryObject = new LogEntryObject();
+				logEntryObject = JsonUtility.FromJson<LogEntryObject>( logPath );
+				Debug.Log( logEntryObject.EntriesIsEmpty() );
 			}
 		}
 
@@ -43,8 +50,7 @@ namespace LogbookGenerator
 		{
 			try
 			{
-				string logPath = "C:/UnityPriorityProjects/GDV_CoreModules2/Assets/User Logs/test.txt";
-				StreamWriter sw = new StreamWriter( logPath );
+				StreamWriter sw = new( logPath );
 				sw.Write( JsonUtility.ToJson( logEntryObject, true ) );
 				sw.Flush();
 				sw.Close();
@@ -94,7 +100,7 @@ public struct LogEntry
 public class LogEntryObject
 {
 	[SerializeField]
-	private List<LogEntry> entries = new List<LogEntry>();
+	private List<LogEntry> entries = new();
 
 	public void AddEntry( LogEntry entry )
 	{
@@ -105,6 +111,6 @@ public class LogEntryObject
 
 	public bool EntriesIsEmpty()
 	{
-		return ( entries.Count == 0 ) ? true : false;
+		return ( entries.Count == 0 );
 	}
 }

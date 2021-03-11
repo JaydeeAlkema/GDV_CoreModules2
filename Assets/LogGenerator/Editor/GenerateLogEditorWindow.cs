@@ -43,7 +43,6 @@ namespace LogbookGenerator
 		private void OnEnable()
 		{
 			generateLog = new GenerateLog();
-			generateLog.LoadFile();
 		}
 
 		private void ShowContentsDependingOnToolbarInt()
@@ -80,6 +79,7 @@ namespace LogbookGenerator
 			if( EditorPrefs.GetString( "LogbookGenerator_LogPath" ) != "" )
 			{
 				logPath = EditorPrefs.GetString( "LogbookGenerator_LogPath" );
+				generateLog.SetLogPath( logPath );
 			}
 
 			if( GUILayout.Button( "Select Log File" ) )
@@ -87,6 +87,16 @@ namespace LogbookGenerator
 				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
 				Debug.Log( logPath );
 				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
+				generateLog.SetLogPath( logPath );
+			}
+
+			if( GUILayout.Button( "Load File" ) )
+			{
+				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
+				Debug.Log( logPath );
+				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
+				generateLog.SetLogPath( logPath );
+				generateLog.LoadFile();
 			}
 
 			GUILayout.Label( "Current Path:" );
