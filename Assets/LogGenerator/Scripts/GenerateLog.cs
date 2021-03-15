@@ -9,22 +9,25 @@ namespace LogbookGenerator
 {
 	public class GenerateLog
 	{
-		private LogEntryObject logEntryObject;
+		private LogEntryObject logEntryObject;  // Active Log Entry Object
 		private string logPath;
+
+		public LogEntryObject LogEntryObject { get => logEntryObject; set => logEntryObject = value; }
 
 		public GenerateLog()
 		{
 			logEntryObject = new LogEntryObject();
+			logPath = PlayerPrefs.GetString( "LogbookGenerator_LogPath" );
 		}
 
-		public void SetLogPath( string path )
+		public void CreateFile( string path )
 		{
-			logPath = path;
+			string fileName = path + "/";
 		}
 
 		public void AddLogToEntries( string user, string title, string message, string notes )
 		{
-			LogEntry entry = new()
+			LogEntry entry = new LogEntry()
 			{
 				Username = ClearForbiddenCharactersFromString( user ),
 				Title = ClearForbiddenCharactersFromString( title ),
@@ -39,22 +42,27 @@ namespace LogbookGenerator
 
 		public void LoadFile()
 		{
-			if( logEntryObject.EntriesIsEmpty() )
-			{
-				logEntryObject = JsonUtility.FromJson<LogEntryObject>( logPath );
-				Debug.Log( logEntryObject.EntriesIsEmpty() );
-			}
+			if( logEntryObject == null ) logEntryObject = new LogEntryObject();
+
+			StreamReader sr = new StreamReader( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
+			string json = sr.ReadToEnd();
+
+			logEntryObject = JsonUtility.FromJson<LogEntryObject>( json );
+			Debug.Log( logEntryObject.EntriesIsEmpty() );
+
+			sr.Close();
+			sr.Dispose();
 		}
 
 		public void WriteToLog()
 		{
 			try
 			{
-				StreamWriter sw = new( logPath );
+				StreamWriter sw = new StreamWriter( logPath );
 				sw.Write( JsonUtility.ToJson( logEntryObject, true ) );
+
 				sw.Flush();
 				sw.Close();
-
 			}
 			catch( Exception e )
 			{
@@ -99,8 +107,7 @@ public struct LogEntry
 [System.Serializable]
 public class LogEntryObject
 {
-	[SerializeField]
-	private List<LogEntry> entries = new();
+	public List<LogEntry> entries = new List<LogEntry>();
 
 	public void AddEntry( LogEntry entry )
 	{

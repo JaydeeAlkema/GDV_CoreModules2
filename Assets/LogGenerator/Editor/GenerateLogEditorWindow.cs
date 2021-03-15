@@ -17,15 +17,23 @@ namespace LogbookGenerator
 	{
 		private static GenerateLogEditorWindow window;
 		private GenerateLog generateLog;
+		private LogEntryObject logEntryObject;
 
 		private string logPath;
+		private string logPathRoot;
 		private int toolbarInt = 0;
-		string[] toolbarTabTitles = { "Home", "Add Log", "Edit Log", "Remove Log" };
+		private int prevToolbarInt = -1;
+		string[] toolbarTabTitles = { "Home", "Add Log", "Entries" };
 
 		private string Log_Username = "Username";
 		private string Log_Title = "Title";
 		private string Log_Message = "Message...";
 		private string Log_Notes = "Notes...";
+
+		Vector2 scrollPos;
+		private int currentLogIndex = -1;
+
+		GUIStyle activeEntryButtonStyle;
 
 		[MenuItem( "Window/Logbook Generator" )]
 		static void ShowWindow()
@@ -35,7 +43,20 @@ namespace LogbookGenerator
 		}
 		void OnGUI()
 		{
-			toolbarInt = GUILayout.Toolbar( toolbarInt, toolbarTabTitles );
+			toolbarInt = GUILayout.Toolbar( toolbarInt, toolbarTabTitles, GUILayout.Height( 32f ) );
+
+			activeEntryButtonStyle = new GUIStyle( GUI.skin.button );
+			activeEntryButtonStyle.active.textColor = Color.green;
+			activeEntryButtonStyle.normal.textColor = Color.white;
+			activeEntryButtonStyle.fixedHeight = 32f;
+
+
+			if( prevToolbarInt != toolbarInt )
+			{
+				LoadContent( toolbarInt );
+			}
+
+			prevToolbarInt = toolbarInt;
 
 			GUILayout.Space( 15 );
 			ShowContentsDependingOnToolbarInt();
@@ -43,6 +64,30 @@ namespace LogbookGenerator
 		private void OnEnable()
 		{
 			generateLog = new GenerateLog();
+			prevToolbarInt = -1;
+		}
+
+		private void ClearAddLogPage()
+		{
+			Log_Username = "Username";
+			Log_Title = "Title";
+			Log_Message = "Message...";
+			Log_Notes = "Notes...";
+		}
+
+		private void LoadContent( int currentToolbarInt )
+		{
+			switch( currentToolbarInt )
+			{
+				case 0:
+
+				case 2:
+					generateLog.LoadFile();
+					break;
+
+				default:
+					break;
+			}
 		}
 
 		private void ShowContentsDependingOnToolbarInt()
@@ -51,22 +96,21 @@ namespace LogbookGenerator
 			{
 				// Welcome Page
 				case 0:
-					ShowWelcomeContents();
+					ShowWelcomePageContents();
 					break;
 
 				// Add Log Page
 				case 1:
-					ShowAddLogContents();
+					ShowAddLogPageContents();
 					break;
 
-				// Edit Log Page
+				// Edit/Remove Log Page
 				case 2:
-					ShowEditLogContents();
+					ShowLogEntriesPage();
 					break;
 
-				// Remove Log Page
 				case 3:
-					ShowRemoveLogContents();
+					ShowEditLogPageContents();
 					break;
 
 				default:
@@ -74,20 +118,25 @@ namespace LogbookGenerator
 			}
 		}
 
-		private void ShowWelcomeContents()
+		private void ShowWelcomePageContents()
 		{
 			if( EditorPrefs.GetString( "LogbookGenerator_LogPath" ) != "" )
 			{
 				logPath = EditorPrefs.GetString( "LogbookGenerator_LogPath" );
-				generateLog.SetLogPath( logPath );
+				PlayerPrefs.SetString( "LogbookGenerator_LogPath", logPath );
 			}
 
-			if( GUILayout.Button( "Select Log File" ) )
+			if( GUILayout.Button( "Set Log Folder Path" ) )
 			{
-				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
-				Debug.Log( logPath );
-				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
-				generateLog.SetLogPath( logPath );
+				logPathRoot = EditorUtility.OpenFilePanel( "Select Root Folder", "This will be the root folder where your logs will be stored.", "" );
+				EditorPrefs.SetString( "LogbookGenerator_LogPathRoot", logPathRoot );
+				PlayerPrefs.SetString( "LogbookGenerator_LogPathRoot", logPathRoot );
+				generateLog.CreateFile( logPathRoot );
+			}
+
+			if( GUILayout.Button( "Create New Log File" ) )
+			{
+
 			}
 
 			if( GUILayout.Button( "Load File" ) )
@@ -95,14 +144,16 @@ namespace LogbookGenerator
 				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
 				Debug.Log( logPath );
 				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
-				generateLog.SetLogPath( logPath );
 				generateLog.LoadFile();
 			}
 
-			GUILayout.Label( "Current Path:" );
-			GUILayout.Label( logPath, EditorStyles.wordWrappedLabel );
+			if( logPath != "" )
+			{
+				GUILayout.Label( "Current Path:" );
+				GUILayout.Label( logPath, EditorStyles.wordWrappedLabel );
+			}
 		}
-		private void ShowAddLogContents()
+		private void ShowAddLogPageContents()
 		{
 			//TODO:
 			// Fix formating and make this look beter!
@@ -124,25 +175,84 @@ namespace LogbookGenerator
 				string dataPath = EditorPrefs.GetString( "Log_DataPath" );
 
 				generateLog.AddLogToEntries( Log_Username, Log_Title, Log_Message, Log_Notes );
+				generateLog.WriteToLog();
 
 				if( Log_Username != EditorPrefs.GetString( "Log_Username" ) )
 				{
 					EditorPrefs.SetString( "Log_Username", Log_Username );
 				}
 
-				Log_Username = EditorPrefs.GetString( "Log_Username" );
-				Log_Title = "Title";
-				Log_Message = "Message";
-				Log_Notes = "Notes";
+				ClearAddLogPage();
 			}
 		}
-		private void ShowEditLogContents()
+
+		private void ShowEditLogPageContents()
 		{
-			GUILayout.Label( "Edit Log" );
+			Log_Username = EditorGUILayout.TextField( "", Log_Username );
+			GUILayout.Space( 2 );
+			Log_Title = EditorGUILayout.TextField( "", Log_Title );
+			GUILayout.Space( 2 );
+			Log_Message = GUILayout.TextArea( Log_Message, GUILayout.ExpandHeight( true ), GUILayout.Height( 128 ) );
+			GUILayout.Space( 5 );
+			Log_Notes = GUILayout.TextArea( Log_Notes, GUILayout.ExpandHeight( true ), GUILayout.Height( 64 ) );
+
+			GUILayout.FlexibleSpace();
+			GUI.backgroundColor = Color.green;
+			if( GUILayout.Button( "Finish Editing" ) )
+			{
+				LogEntry editedLog = generateLog.LogEntryObject.entries[currentLogIndex];
+
+				editedLog.Username = Log_Username;
+				editedLog.Title = Log_Title;
+				editedLog.Message = Log_Message;
+				editedLog.Notes = Log_Notes;
+				editedLog.TimeOfLog = generateLog.GetDate();
+
+				generateLog.LogEntryObject.entries[currentLogIndex] = editedLog;
+
+				generateLog.WriteToLog();
+
+				ClearAddLogPage();
+				ShowLogEntriesPage();
+			}
 		}
-		private void ShowRemoveLogContents()
+
+		private void RemoveLogFromEntries()
 		{
-			GUILayout.Label( "Remove Log" );
+			generateLog.LogEntryObject.entries.RemoveAt( currentLogIndex );
+			generateLog.WriteToLog();
+			generateLog.LoadFile();
+		}
+
+		private void ShowLogEntriesPage()
+		{
+			toolbarInt = 2;
+			GUILayout.Label( "Logs: " );
+
+			scrollPos = GUILayout.BeginScrollView( scrollPos, GUILayout.ExpandWidth( true ), GUILayout.Height( position.height - 128f ) );
+			for( int i = 0; i < generateLog.LogEntryObject.entries.Count; i++ )
+			{
+				string buttonTitle = generateLog.LogEntryObject.entries[i].Title + " - " + generateLog.LogEntryObject.entries[i].TimeOfLog;
+				if( GUILayout.Button( buttonTitle, activeEntryButtonStyle ) )
+				{
+					// Do something
+					currentLogIndex = i;
+				}
+			}
+			GUILayout.EndScrollView();
+
+			GUILayout.FlexibleSpace();
+			GUILayout.BeginHorizontal();
+			if( GUILayout.Button( "Edit" ) )
+			{
+				toolbarInt = 3;
+				ShowEditLogPageContents();
+			}
+			if( GUILayout.Button( "Delete" ) )
+			{
+				RemoveLogFromEntries();
+			}
+			GUILayout.EndHorizontal();
 		}
 	}
 }
