@@ -73,6 +73,9 @@ namespace LogbookGenerator
 			prevToolbarIndex = -1;
 		}
 
+		/// <summary>
+		/// Clears the Add Log page 
+		/// </summary>
 		private void ClearAddLogPage()
 		{
 			Log_Username = EditorPrefs.GetString( "Log_Username" );
@@ -81,6 +84,10 @@ namespace LogbookGenerator
 			Log_Notes = "Notes...";
 		}
 
+		/// <summary>
+		/// Loads the content depending on which tab selected.
+		/// </summary>
+		/// <param name="currentToolbarIndex"></param>
 		private void LoadContent( int currentToolbarIndex )
 		{
 			switch( currentToolbarIndex )
@@ -94,6 +101,9 @@ namespace LogbookGenerator
 			}
 		}
 
+		/// <summary>
+		/// Shows the content depending on which toolbar index is selected.
+		/// </summary>
 		private void ShowContentsDependingOnToolbarIndex()
 		{
 			switch( toolbarIndex )
@@ -122,6 +132,9 @@ namespace LogbookGenerator
 			}
 		}
 
+		/// <summary>
+		/// Shows the welcome page contents
+		/// </summary>
 		private void ShowWelcomePageContents()
 		{
 			Log_Username = EditorGUILayout.TextField( "Username ", Log_Username );
@@ -167,6 +180,9 @@ namespace LogbookGenerator
 			GUILayout.Label( logPath, EditorStyles.wordWrappedLabel );
 		}
 
+		/// <summary>
+		/// Shows the Add Log Page contents
+		/// </summary>
 		private void ShowAddLogPageContents()
 		{
 			Log_Username = EditorGUILayout.TextField( "", Log_Username );
@@ -196,6 +212,9 @@ namespace LogbookGenerator
 			}
 		}
 
+		/// <summary>
+		/// Laods the entry log data before use.
+		/// </summary>
 		private void LoadLogEntryData()
 		{
 			LogEntry editedLog = generateLog.LogEntryObject.entries[currentLogIndex];
@@ -206,6 +225,9 @@ namespace LogbookGenerator
 			editedLog_Notes = editedLog.Notes;
 		}
 
+		/// <summary>
+		/// Shows the Edit Log Page Contents. Which is the same layout as the Add Log Page 
+		/// </summary>
 		private void ShowEditLogPageContents()
 		{
 			editedLog_Username = EditorGUILayout.TextField( "", editedLog_Username );
@@ -245,6 +267,9 @@ namespace LogbookGenerator
 			GUILayout.EndHorizontal();
 		}
 
+		/// <summary>
+		/// Shows a list of all the logs in the list
+		/// </summary>
 		private void ShowLogEntriesPage()
 		{
 			toolbarIndex = 2;
@@ -276,6 +301,9 @@ namespace LogbookGenerator
 			GUILayout.EndHorizontal();
 		}
 
+		/// <summary>
+		///  Removes a Log from the entries.
+		/// </summary>
 		private void RemoveLogFromEntries()
 		{
 			if( currentLogIndex <= generateLog.LogEntryObject.entries.Count )

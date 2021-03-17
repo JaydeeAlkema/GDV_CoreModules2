@@ -20,6 +20,13 @@ namespace LogbookGenerator
 			logPath = PlayerPrefs.GetString( "LogbookGenerator_LogPath" );
 		}
 
+		/// <summary>
+		/// Adds A log to the entries list.
+		/// </summary>
+		/// <param name="user"> Name of the User. </param>
+		/// <param name="title"> Title of the Log. </param>
+		/// <param name="message"> Message of the Log. </param>
+		/// <param name="notes"> Notes of the Log. </param>
 		public void AddLogToEntries( string user, string title, string message, string notes )
 		{
 			//if( logEntryObject == null ) logEntryObject = new LogEntryObject();
@@ -35,6 +42,9 @@ namespace LogbookGenerator
 			logEntryObject.AddEntry( entry );
 		}
 
+		/// <summary>
+		/// Loads data from file. necessary for when you close the unity project and the runtime data is lost.
+		/// </summary>
 		public void LoadFile()
 		{
 			StreamReader sr = new StreamReader( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
@@ -47,6 +57,9 @@ namespace LogbookGenerator
 			logEntryObject = JsonUtility.FromJson<LogEntryObject>( json );
 		}
 
+		/// <summary>
+		/// Writes the LogEntryObject to JSON.
+		/// </summary>
 		public void WriteToLog()
 		{
 			try
@@ -63,6 +76,10 @@ namespace LogbookGenerator
 			}
 		}
 
+		/// <summary>
+		/// Get's the current date and parses it into a neat little string.
+		/// </summary>
+		/// <returns></returns>
 		public string GetDate()
 		{
 			string day = System.DateTime.Now.Day.ToString();
@@ -74,6 +91,11 @@ namespace LogbookGenerator
 			return day + "/" + month + "/" + year + " " + time;
 		}
 
+		/// <summary>
+		/// Clears forbidden characters from the given string
+		/// </summary>
+		/// <param name="text"> String to clear forbidden messages of.</param>
+		/// <returns></returns>
 		private string ClearForbiddenCharactersFromString( string text )
 		{
 			char[] charsToRemove = { ';', '|' };
