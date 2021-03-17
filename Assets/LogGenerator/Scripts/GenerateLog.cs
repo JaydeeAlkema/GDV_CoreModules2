@@ -20,13 +20,9 @@ namespace LogbookGenerator
 			logPath = PlayerPrefs.GetString( "LogbookGenerator_LogPath" );
 		}
 
-		public void CreateFile( string path )
-		{
-			string fileName = path + "/";
-		}
-
 		public void AddLogToEntries( string user, string title, string message, string notes )
 		{
+			//if( logEntryObject == null ) logEntryObject = new LogEntryObject();
 			LogEntry entry = new LogEntry()
 			{
 				Username = ClearForbiddenCharactersFromString( user ),

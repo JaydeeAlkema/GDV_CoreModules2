@@ -7,10 +7,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-//TODO:
-// Add comments.
-// Improve UI layout.
-
 namespace LogbookGenerator
 {
 	public class GenerateLogEditorWindow : EditorWindow
@@ -51,6 +47,7 @@ namespace LogbookGenerator
 
 		void OnGUI()
 		{
+			if( generateLog == null ) generateLog = new GenerateLog();
 			toolbarIndex = GUILayout.Toolbar( toolbarIndex, toolbarTabTitles, GUILayout.Height( 32f ) );
 
 			activeEntryButtonStyle = new GUIStyle( GUI.skin.button );
@@ -127,26 +124,35 @@ namespace LogbookGenerator
 
 		private void ShowWelcomePageContents()
 		{
+			Log_Username = EditorGUILayout.TextField( "Username ", Log_Username );
+			EditorPrefs.SetString( "Log_Username", Log_Username );
+			GUILayout.Space( 15 );
+
 			if( EditorPrefs.GetString( "LogbookGenerator_LogPath" ) != "" )
 			{
 				logPath = EditorPrefs.GetString( "LogbookGenerator_LogPath" );
 				PlayerPrefs.SetString( "LogbookGenerator_LogPath", logPath );
 			}
 
-			if( GUILayout.Button( "Set Log Folder Path", GUILayout.Height( 32f ) ) )
-			{
-				logPathRoot = EditorUtility.OpenFilePanel( "Select Root Folder", "This will be the root folder where your logs will be stored.", "" );
-				EditorPrefs.SetString( "LogbookGenerator_LogPathRoot", logPathRoot );
-				PlayerPrefs.SetString( "LogbookGenerator_LogPathRoot", logPathRoot );
-				generateLog.CreateFile( logPathRoot );
-			}
-
 			if( GUILayout.Button( "Create New Log File", GUILayout.Height( 32f ) ) )
 			{
 				//TODO:
-				// Set Path.							(Popup file explorer)
-				// Set file name.						(Popup file explorer)
-				// Set new file as target file.			(generatelog.CreateFile(path + filename))
+				// Create folder (if it doesn't already exist)
+				if( !Directory.Exists( Application.dataPath + "/User Logs" ) )
+				{
+					string guid = AssetDatabase.CreateFolder( "Assets", "User Logs" );
+					string newFolderPath = AssetDatabase.GUIDToAssetPath( guid );
+				}
+
+				StreamWriter sr = new StreamWriter( Path.Combine( Application.dataPath + "/User Logs/" + Log_Username + ".json" ) );
+				sr.Flush();
+				sr.Close();
+
+				logPath = Path.Combine( Application.dataPath + "/User Logs/" + Log_Username + ".json" );
+				PlayerPrefs.SetString( "LogbookGenerator_LogPath", Application.dataPath + "/User Logs/" + Log_Username );
+
+				generateLog.LoadFile();
+				AssetDatabase.Refresh();
 			}
 
 			if( GUILayout.Button( "Load File", GUILayout.Height( 32f ) ) )
@@ -185,6 +191,7 @@ namespace LogbookGenerator
 					EditorPrefs.SetString( "Log_Username", Log_Username );
 				}
 
+				toolbarIndex = 0;
 				ClearAddLogPage();
 			}
 		}
