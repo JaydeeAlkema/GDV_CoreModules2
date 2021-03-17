@@ -37,21 +37,18 @@ namespace LogbookGenerator
 			};
 
 			logEntryObject.AddEntry( entry );
-			WriteToLog();
 		}
 
 		public void LoadFile()
 		{
-			if( logEntryObject == null ) logEntryObject = new LogEntryObject();
-
 			StreamReader sr = new StreamReader( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
 			string json = sr.ReadToEnd();
-
-			logEntryObject = JsonUtility.FromJson<LogEntryObject>( json );
-			Debug.Log( logEntryObject.EntriesIsEmpty() );
-
 			sr.Close();
 			sr.Dispose();
+
+			if( logEntryObject == null ) logEntryObject = new LogEntryObject();
+
+			logEntryObject = JsonUtility.FromJson<LogEntryObject>( json );
 		}
 
 		public void WriteToLog()
@@ -118,6 +115,6 @@ public class LogEntryObject
 
 	public bool EntriesIsEmpty()
 	{
-		return ( entries.Count == 0 );
+		return entries.Count == 0;
 	}
 }
