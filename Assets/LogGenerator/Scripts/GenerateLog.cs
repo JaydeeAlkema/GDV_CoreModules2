@@ -3,19 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace LogbookGenerator
 {
-	public class GenerateLog
+	[InitializeOnLoad]
+	public static class GenerateLog
 	{
-		private LogEntryObject logEntryObject;  // Active Log Entry Object
-		private string logPath;
+		private static LogEntryObject logEntryObject = new LogEntryObject();  // Active Log Entry Object
+		public static string logPath;
 
-		public LogEntryObject LogEntryObject { get => logEntryObject; set => logEntryObject = value; }
-
-		public GenerateLog()
+		public static LogEntryObject LogEntryObject
 		{
+			get
+			{
+				if( logEntryObject == null ) logEntryObject = new LogEntryObject();
+				return logEntryObject;
+			}
+			set { logEntryObject = value; }
+		}
+
+		static GenerateLog()
+		{
+			Debug.Log( "Constructor..." );
 			logEntryObject = new LogEntryObject();
 			logPath = PlayerPrefs.GetString( "LogbookGenerator_LogPath" );
 		}
@@ -27,9 +38,8 @@ namespace LogbookGenerator
 		/// <param name="title"> Title of the Log. </param>
 		/// <param name="message"> Message of the Log. </param>
 		/// <param name="notes"> Notes of the Log. </param>
-		public void AddLogToEntries( string user, string title, string message, string notes )
+		public static void AddLogToEntries( string user, string title, string message, string notes )
 		{
-			//if( logEntryObject == null ) logEntryObject = new LogEntryObject();
 			LogEntry entry = new LogEntry()
 			{
 				Username = ClearForbiddenCharactersFromString( user ),
@@ -39,33 +49,38 @@ namespace LogbookGenerator
 				TimeOfLog = GetDate()
 			};
 
-			logEntryObject.AddEntry( entry );
+			LogEntryObject.AddEntry( entry );
 		}
 
 		/// <summary>
 		/// Loads data from file. necessary for when you close the unity project and the runtime data is lost.
 		/// </summary>
-		public void LoadFile()
+		public static void LoadFile()
 		{
+			if( !File.Exists( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) ) )
+			{
+				Debug.LogWarning( "No such path exists!" );
+				Debug.Log( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
+				return;
+			}
+
 			StreamReader sr = new StreamReader( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
 			string json = sr.ReadToEnd();
 			sr.Close();
 			sr.Dispose();
 
-			if( logEntryObject == null ) logEntryObject = new LogEntryObject();
-
-			logEntryObject = JsonUtility.FromJson<LogEntryObject>( json );
+			LogEntryObject = JsonUtility.FromJson<LogEntryObject>( json );
 		}
 
 		/// <summary>
 		/// Writes the LogEntryObject to JSON.
 		/// </summary>
-		public void WriteToLog()
+		public static void WriteToLog()
 		{
 			try
 			{
 				StreamWriter sw = new StreamWriter( logPath );
-				sw.Write( JsonUtility.ToJson( logEntryObject, true ) );
+				sw.Write( JsonUtility.ToJson( LogEntryObject, true ) );
 
 				sw.Flush();
 				sw.Close();
@@ -80,7 +95,7 @@ namespace LogbookGenerator
 		/// Get's the current date and parses it into a neat little string.
 		/// </summary>
 		/// <returns></returns>
-		public string GetDate()
+		public static string GetDate()
 		{
 			string day = System.DateTime.Now.Day.ToString();
 			string month = System.DateTime.Now.Month.ToString();
@@ -96,7 +111,7 @@ namespace LogbookGenerator
 		/// </summary>
 		/// <param name="text"> String to clear forbidden messages of.</param>
 		/// <returns></returns>
-		private string ClearForbiddenCharactersFromString( string text )
+		private static string ClearForbiddenCharactersFromString( string text )
 		{
 			char[] charsToRemove = { ';', '|' };
 

@@ -1,11 +1,18 @@
 {
     "entries": [
         {
-            "TimeOfLog": "22/3/2021 12:42:52",
+            "TimeOfLog": "22/3/2021 14:01:02",
             "Username": "Jaydee",
-            "Title": "Create Tool Documentation",
-            "Message": "- Created the first version of the tool documentation.",
-            "Notes": "Add some nice images/GIFs for easy display "
+            "Title": "Title",
+            "Message": "Message...",
+            "Notes": "Notes..."
+        },
+        {
+            "TimeOfLog": "22/3/2021 14:01:20",
+            "Username": "Jaydee",
+            "Title": "Title",
+            "Message": "Message...",
+            "Notes": "Notes..."
         }
     ]
 }

@@ -6,14 +6,14 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Callbacks;
 
 namespace LogbookGenerator
 {
+	[InitializeOnLoadAttribute]
 	public class GenerateLogEditorWindow : EditorWindow
 	{
 		private static GenerateLogEditorWindow window;
-		private GenerateLog generateLog;
-		private LogEntryObject logEntryObject;
 
 		private string logPath;
 		private string logPathRoot;
@@ -36,6 +36,8 @@ namespace LogbookGenerator
 
 		GUIStyle activeEntryButtonStyle;
 
+		private static bool reloadRequired = false;
+
 		[MenuItem( "Window/Log Generator" )]
 		static void ShowWindow()
 		{
@@ -47,7 +49,6 @@ namespace LogbookGenerator
 
 		void OnGUI()
 		{
-			if( generateLog == null ) generateLog = new GenerateLog();
 			toolbarIndex = GUILayout.Toolbar( toolbarIndex, toolbarTabTitles, GUILayout.Height( 32f ) );
 
 			activeEntryButtonStyle = new GUIStyle( GUI.skin.button );
@@ -67,9 +68,20 @@ namespace LogbookGenerator
 			ShowContentsDependingOnToolbarIndex();
 		}
 
+		static void OnToolUpdate()
+		{
+			if( reloadRequired )
+			{
+				GenerateLog.LoadFile();
+
+				reloadRequired = false;
+			}
+		}
+
 		private void OnEnable()
 		{
-			generateLog = new GenerateLog();
+			EditorApplication.projectChanged += OnToolUpdate;
+
 			prevToolbarIndex = -1;
 		}
 
@@ -93,7 +105,7 @@ namespace LogbookGenerator
 			switch( currentToolbarIndex )
 			{
 				case 2:
-					generateLog.LoadFile();
+					GenerateLog.LoadFile();
 					break;
 
 				default:
@@ -137,8 +149,13 @@ namespace LogbookGenerator
 		/// </summary>
 		private void ShowWelcomePageContents()
 		{
-			Log_Username = EditorGUILayout.TextField( "Username ", Log_Username );
+			GUILayout.BeginHorizontal();
+
+			EditorGUILayout.LabelField( "Username: ", GUILayout.Width( 64f ) );
+			Log_Username = EditorGUILayout.TextField( "", Log_Username );
 			EditorPrefs.SetString( "Log_Username", Log_Username );
+
+			GUILayout.EndHorizontal();
 			GUILayout.Space( 15 );
 
 			if( EditorPrefs.GetString( "LogbookGenerator_LogPath" ) != "" )
@@ -149,23 +166,22 @@ namespace LogbookGenerator
 
 			if( GUILayout.Button( "Create New Log File", GUILayout.Height( 32f ) ) )
 			{
-				//TODO:
-				// Create folder (if it doesn't already exist)
 				if( !Directory.Exists( Application.dataPath + "/User Logs" ) )
 				{
 					string guid = AssetDatabase.CreateFolder( "Assets", "User Logs" );
 					string newFolderPath = AssetDatabase.GUIDToAssetPath( guid );
 				}
 
-				StreamWriter sr = new StreamWriter( Path.Combine( Application.dataPath + "/User Logs/" + Log_Username + ".json" ) );
-				sr.Flush();
-				sr.Close();
-
 				logPath = Path.Combine( Application.dataPath + "/User Logs/" + Log_Username + ".json" );
 				PlayerPrefs.SetString( "LogbookGenerator_LogPath", Application.dataPath + "/User Logs/" + Log_Username );
 
-				generateLog.LoadFile();
+				FileStream fileStream = new FileStream( logPath, FileMode.Append );
+				StreamWriter sr = new StreamWriter( fileStream );
+				sr.Flush();
+				sr.Close();
+
 				AssetDatabase.Refresh();
+				reloadRequired = true;
 			}
 
 			if( GUILayout.Button( "Load File", GUILayout.Height( 32f ) ) )
@@ -173,7 +189,7 @@ namespace LogbookGenerator
 				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
 				Debug.Log( logPath );
 				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
-				generateLog.LoadFile();
+				GenerateLog.LoadFile();
 			}
 
 			GUILayout.Label( "Current File:" );
@@ -199,8 +215,8 @@ namespace LogbookGenerator
 			{
 				string dataPath = EditorPrefs.GetString( "Log_DataPath" );
 
-				generateLog.AddLogToEntries( Log_Username, Log_Title, Log_Message, Log_Notes );
-				generateLog.WriteToLog();
+				GenerateLog.AddLogToEntries( Log_Username, Log_Title, Log_Message, Log_Notes );
+				GenerateLog.WriteToLog();
 
 				if( Log_Username != EditorPrefs.GetString( "Log_Username" ) )
 				{
@@ -217,7 +233,7 @@ namespace LogbookGenerator
 		/// </summary>
 		private void LoadLogEntryData()
 		{
-			LogEntry editedLog = generateLog.LogEntryObject.entries[currentLogIndex];
+			LogEntry editedLog = GenerateLog.LogEntryObject.entries[currentLogIndex];
 
 			editedLog_Username = editedLog.Username;
 			editedLog_Title = editedLog.Title;
@@ -243,17 +259,17 @@ namespace LogbookGenerator
 			GUI.backgroundColor = Color.green;
 			if( GUILayout.Button( "Finish Editing", GUILayout.Height( 32 ) ) )
 			{
-				LogEntry editedLog = generateLog.LogEntryObject.entries[currentLogIndex];
+				LogEntry editedLog = GenerateLog.LogEntryObject.entries[currentLogIndex];
 
 				editedLog.Username = editedLog_Username;
 				editedLog.Title = editedLog_Title;
 				editedLog.Message = editedLog_Message;
 				editedLog.Notes = editedLog_Notes;
-				editedLog.TimeOfLog = generateLog.GetDate();
+				editedLog.TimeOfLog = GenerateLog.GetDate();
 
-				generateLog.LogEntryObject.entries[currentLogIndex] = editedLog;
+				GenerateLog.LogEntryObject.entries[currentLogIndex] = editedLog;
 
-				generateLog.WriteToLog();
+				GenerateLog.WriteToLog();
 
 				ClearAddLogPage();
 				ShowLogEntriesPage();
@@ -272,13 +288,20 @@ namespace LogbookGenerator
 		/// </summary>
 		private void ShowLogEntriesPage()
 		{
+			// Failsafe
+			if( GenerateLog.LogEntryObject.EntriesIsEmpty() )
+			{
+				Debug.LogWarning( "Entry Object is either Empty! Could not load logs. Add a log first" );
+				return;
+			}
+
 			toolbarIndex = 2;
 			GUILayout.Label( "Logs: " );
 
 			scrollPos = GUILayout.BeginScrollView( scrollPos, GUILayout.ExpandWidth( true ), GUILayout.Height( position.height - 128f ) );
-			for( int i = 0; i < generateLog.LogEntryObject.entries.Count; i++ )
+			for( int i = 0; i < GenerateLog.LogEntryObject.entries.Count; i++ )
 			{
-				string buttonTitle = generateLog.LogEntryObject.entries[i].Title + " - " + generateLog.LogEntryObject.entries[i].TimeOfLog;
+				string buttonTitle = GenerateLog.LogEntryObject.entries[i].Title + " - " + GenerateLog.LogEntryObject.entries[i].TimeOfLog;
 				if( GUILayout.Button( buttonTitle, activeEntryButtonStyle ) )
 				{
 					currentLogIndex = i;
@@ -306,11 +329,11 @@ namespace LogbookGenerator
 		/// </summary>
 		private void RemoveLogFromEntries()
 		{
-			if( currentLogIndex <= generateLog.LogEntryObject.entries.Count )
+			if( currentLogIndex <= GenerateLog.LogEntryObject.entries.Count )
 			{
-				generateLog.LogEntryObject.entries.RemoveAt( currentLogIndex );
-				generateLog.WriteToLog();
-				generateLog.LoadFile();
+				GenerateLog.LogEntryObject.entries.RemoveAt( currentLogIndex );
+				GenerateLog.WriteToLog();
+				GenerateLog.LoadFile();
 			}
 		}
 	}
