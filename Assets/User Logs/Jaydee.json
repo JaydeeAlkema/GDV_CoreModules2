@@ -1,46 +1,11 @@
 {
     "entries": [
         {
-            "TimeOfLog": "17/3/2021 17:32:40",
+            "TimeOfLog": "22/3/2021 12:42:52",
             "Username": "Jaydee",
-            "Title": "Title",
-            "Message": "Message...",
-            "Notes": "Notes..."
-        },
-        {
-            "TimeOfLog": "17/3/2021 17:33:03",
-            "Username": "Jaydee",
-            "Title": "Title",
-            "Message": "Message...",
-            "Notes": "Notes..."
-        },
-        {
-            "TimeOfLog": "17/3/2021 17:33:06",
-            "Username": "Jaydee",
-            "Title": "Title",
-            "Message": "Message...",
-            "Notes": "Notes..."
-        },
-        {
-            "TimeOfLog": "17/3/2021 17:33:09",
-            "Username": "Jaydee",
-            "Title": "Title",
-            "Message": "Message...",
-            "Notes": "Notes..."
-        },
-        {
-            "TimeOfLog": "17/3/2021 17:34:27",
-            "Username": "Username",
-            "Title": "Title",
-            "Message": "Message...",
-            "Notes": "Notes..."
-        },
-        {
-            "TimeOfLog": "17/3/2021 17:36:57",
-            "Username": "Jaydee",
-            "Title": "test title",
-            "Message": "- this is a test message",
-            "Notes": "Test notes. very nice"
+            "Title": "Create Tool Documentation",
+            "Message": "- Created the first version of the tool documentation.",
+            "Notes": "Add some nice images/GIFs for easy display "
         }
     ]
 }
