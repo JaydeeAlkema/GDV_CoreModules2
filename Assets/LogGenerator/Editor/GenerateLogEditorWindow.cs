@@ -187,7 +187,7 @@ namespace LogbookGenerator
 			if( GUILayout.Button( "Load File", GUILayout.Height( 32f ) ) )
 			{
 				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
-				Debug.Log( logPath );
+				//Debug.Log( logPath );
 				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
 				GenerateLog.LoadFile();
 			}

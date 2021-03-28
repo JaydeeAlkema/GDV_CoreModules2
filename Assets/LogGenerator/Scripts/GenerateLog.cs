@@ -26,7 +26,7 @@ namespace LogbookGenerator
 
 		static GenerateLog()
 		{
-			Debug.Log( "Constructor..." );
+			//Debug.Log( "Constructor..." );
 			logEntryObject = new LogEntryObject();
 			logPath = PlayerPrefs.GetString( "LogbookGenerator_LogPath" );
 		}
@@ -60,7 +60,7 @@ namespace LogbookGenerator
 			if( !File.Exists( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) ) )
 			{
 				Debug.LogWarning( "No such path exists!" );
-				Debug.Log( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
+				//Debug.Log( PlayerPrefs.GetString( "LogbookGenerator_LogPath" ) );
 				return;
 			}
 
