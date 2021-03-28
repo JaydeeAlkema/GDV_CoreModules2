@@ -162,6 +162,7 @@ namespace LogbookGenerator
 			{
 				logPath = EditorPrefs.GetString( "LogbookGenerator_LogPath" );
 				PlayerPrefs.SetString( "LogbookGenerator_LogPath", logPath );
+				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
 			}
 
 			if( GUILayout.Button( "Create New Log File", GUILayout.Height( 32f ) ) )
@@ -173,7 +174,8 @@ namespace LogbookGenerator
 				}
 
 				logPath = Path.Combine( Application.dataPath + "/User Logs/" + Log_Username + ".json" );
-				PlayerPrefs.SetString( "LogbookGenerator_LogPath", Application.dataPath + "/User Logs/" + Log_Username );
+				PlayerPrefs.SetString( "LogbookGenerator_LogPath", logPath );
+				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
 
 				FileStream fileStream = new FileStream( logPath, FileMode.Append );
 				StreamWriter sr = new StreamWriter( fileStream );
@@ -186,7 +188,7 @@ namespace LogbookGenerator
 
 			if( GUILayout.Button( "Load File", GUILayout.Height( 32f ) ) )
 			{
-				logPath = EditorUtility.OpenFilePanel( "Select Log File", "This can be a .doc/.docx/.txt etc.", "" );
+				logPath = EditorUtility.OpenFilePanel( "Select Log File", "", "" );
 				//Debug.Log( logPath );
 				EditorPrefs.SetString( "LogbookGenerator_LogPath", logPath );
 				GenerateLog.LoadFile();

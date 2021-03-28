@@ -77,6 +77,7 @@ namespace LogbookGenerator
 		/// </summary>
 		public static void WriteToLog()
 		{
+			logPath = PlayerPrefs.GetString( "LogbookGenerator_LogPath" );
 			try
 			{
 				StreamWriter sw = new StreamWriter( logPath );
